@@ -9,14 +9,21 @@ public class lesson implements Serializable{
 	protected short week;
 	protected short day;
 	protected short time;
+	private lesson next;
 
 	public lesson(String s, String tn, String r, short w, short d, short t){
 		subj = s;
 		teacher = tn;
 		room = r;
-		week = w;
-		day = d;
-		time = t;
+		week = w; 	//0 - both, 1 - top, 2 - bottom
+		day = d; 	//1-6
+		time = t;	//1-5
+	}
+	public lesson getNext() {
+		return next;
+	}
+	public void setNext(lesson next) {
+		this.next = next;
 	}
 	public String getSubj(){
 		return subj;		
