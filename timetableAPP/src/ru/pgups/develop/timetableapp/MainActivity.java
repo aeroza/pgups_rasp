@@ -1,14 +1,25 @@
 package ru.pgups.develop.timetableapp;
 
+import ru.pgups.develop.timetableapp.lesson;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.util.zip.GZIPInputStream;
 
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -51,7 +62,7 @@ public class MainActivity extends Activity {
             {
                 try
                 {
-                    URL myURL = new URL("http://bloodoed.zg5.ru/projects/pgups_timetable/table.out");
+                    URL myURL = new URL("http://bloodoed.zg5.ru/projects/pgups_timetable/package2.zip");
                     InputStream dataStream = myURL.openConnection().getInputStream();
                     InputStreamReader isr = new InputStreamReader(dataStream, "UTF-8");
                     StringBuffer data = new StringBuffer();
@@ -61,19 +72,65 @@ public class MainActivity extends Activity {
                     }
                     System.out.println("data = " + data.length() + " \ndata:" + data + "c = " + c);
                     
-                    String FILENAME = "table.cer";
+                    /*String FILENAME = "package2.zip";
                     FileOutputStream fos = openFileOutput(FILENAME, Context.MODE_PRIVATE);
                     fos.write(data.length());
-                    fos.close();
+                    fos.close();*/
+                    BufferedWriter out = new BufferedWriter(
+                    		new FileWriter(Environment.DIRECTORY_DOWNLOADS + "/package2.zip"));
+                    out.write(data.toString());
+                    out.close();
+                    try {
+                    	//String tmp = getFilesDir() + "/package2.zip";
+                    	//URL url = new URL(getFilesDir() + "/package2.zip")
+                    	//File f = new File(getFilesDir() + "/package2.zip");
+						extractPackage();
+					} catch (ClassNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (URISyntaxException e){
+						e.printStackTrace();
+					}
                     
-            } 
-            catch (IOException ie) {
-                  ie.printStackTrace();
-            }
+                } 
+                catch (IOException ie)
+                {
+                	ie.printStackTrace();
+                }
             }
         });
         myThready.start();	//Запуск потока		
-		
-		 }
+
 	}
+	
+/*	public void extractPackage() throws IOException, ClassNotFoundException{
+		System.out.println("Извлечение данных из jar-архива");
+		// расположение и имя архива
+		String nameJar = getFilesDir() + "/package.zip";
+		// куда файлы будут распакованы
+		String destination = getFilesDir () + "/";
+		new unPackZip().unpack(destination, nameJar);
+        //System.out.println(pgups.getHead().getHead().getHead().getName());
+
+	}*/
+	
+	public void extractPackage() throws IOException, ClassNotFoundException, URISyntaxException{
+		String tmp = Environment.DIRECTORY_DOWNLOADS + "/package2.zip";
+		System.out.println(tmp);
+        FileInputStream fis = new FileInputStream(tmp);
+		//URL url = new URL( "http://bloodoed.zg5.ru/projects/pgups_timetable/package2.zip" );
+		//File f;
+		//String f = "http://bloodoed.zg5.ru/projects/pgups_timetable/package2.zip";
+		//FileInputStream fis = new FileInputStream((File) f);
+
+        GZIPInputStream gs = new GZIPInputStream(fis);
+        ObjectInputStream ois = new ObjectInputStream(gs);
+        university pgups= (university) ois.readObject();
+        //Employee sam = (Employee) ois.readObject();
+        System.out.println(pgups.getHead().getHead().getHead().getName());
+        ois.close();
+        fis.close();		
+	}
+	
+}
 

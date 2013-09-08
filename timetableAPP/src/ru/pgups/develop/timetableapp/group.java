@@ -1,8 +1,8 @@
-package table;
+package ru.pgups.develop.timetableapp;
 
 import java.io.Serializable;
 
-import table.lesson;
+import ru.pgups.develop.timetableapp.lesson;
 
 public class group implements Serializable {
 	/**

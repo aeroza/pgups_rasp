@@ -1,4 +1,4 @@
-package table;
+package ru.pgups.develop.timetableapp;
 
 import java.io.Serializable;
 
