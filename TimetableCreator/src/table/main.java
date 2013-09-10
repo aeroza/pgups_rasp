@@ -1,21 +1,23 @@
 package table;
 
-import table.group;
+import tableLib.*;
 
-import table.packFile;
-import table.unPackZip;
-
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.URL;
 import java.util.Scanner;
-import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+
+
+	/* Это главный класс серверного приложения.
+	 * Здесь мы будем наполнять объекты и сохранять их в файлы.
+	 */
 
 public class main {
 	/**
@@ -25,8 +27,11 @@ public class main {
 	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
 		System.out.println("Hello, world!");
-		/*Scanner sc = new Scanner(System.in);
+		//примитивное консольное заполнение трех объектов
+		//Scanner поможет нам считывать из консоли
+		Scanner sc = new Scanner(System.in);
 		university pgups = new university("PGUPS-write");
+		//названия методов говорят сами за себя=)
 		pgups.addFaculty("Bridges");
 		pgups.getHead().addCourse(1);
 		pgups.getHead().getHead().addGroup("tst101");
@@ -53,26 +58,27 @@ public class main {
 		
 		//пишем объект в файл
         try {
-            
-            FileOutputStream fos = new FileOutputStream("table.out");
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            //указываем выходной файл
+            FileOutputStream fos = new FileOutputStream("tableZIP.out");
+            //сериализуем объект, но на выход идет еще и ужатый через
+            //GZIPOutputStream поток
+            ObjectOutputStream oos = new ObjectOutputStream(new GZIPOutputStream(fos));
+            //пишем в файл один объект
             oos.writeObject(pgups);
             oos.flush();
-            oos.close();    */    
-            //makePackage2();
+            oos.close();        
 
-        /*} catch (IOException ex){
+        } catch (IOException ex){
             ex.printStackTrace();
-        }*/
+        }/*
         //читаем объект из файла
-        FileInputStream fis = new FileInputStream("table.out");
+        /*FileInputStream fis = new FileInputStream("table.out");
         ObjectInputStream oin = new ObjectInputStream(fis);
         university ts = null;
         try {
         	//university ts = new university("");
         	
 			ts = (university) oin.readObject();
-			makePackage2(ts);
 			System.out.println(ts.getHead().getHead().getHead().getName());
 			oin.close();
 		} catch (ClassNotFoundException e) {
@@ -85,52 +91,59 @@ public class main {
         	System.out.println(temp.getSubj());
         	System.out.println(temp.getRoom());
         	temp = temp.getNext();
-        }while(temp!=ts.getHead().getHead().getHead().getTail());
+        }while(temp!=ts.getHead().getHead().getHead().getTail());*/
         
 	}
-	/*public static void makePackage()
-	{
-		System.out.println("Создание jar-архива");
-		// массив файлов для сжатия
-		String[] filesToJar = new String[1];
-		filesToJar[0] = "table.out";
-//		filesToJar[1] = "chapt09//UseJar.class";
-		byte[] buffer = new byte[1024];
-		// имя полученного архива
-		String jarFileName = "package.jar";
-		packFile.pack(filesToJar, jarFileName, buffer);
-	}*/
 	
-	public static void makePackage2(university t) throws IOException
-	{
-		FileOutputStream fos = new FileOutputStream("package2.zip");
-        GZIPOutputStream gz = new GZIPOutputStream(fos);
-        ObjectOutputStream oos = new ObjectOutputStream(gz);
-        oos.writeObject(t);
-        //oos.writeObject(sam);
-        oos.flush();
-        oos.close();
-        fos.close();
-        try {
-			extractFile();
+	//ниже - помойка
+	
+	public static void forlulz() throws IOException{
+        URL myURL = new URL("http://bloodoed.zg5.ru/projects/pgups_timetable/table.out");
+        InputStream dataStream = myURL.openConnection().getInputStream();
+        InputStreamReader isr = new InputStreamReader(dataStream);
+        StringBuffer data = new StringBuffer();
+        int c;
+        while ((c = isr.read()) != -1){
+               data.append((char) c);
+        }
+        isr.close();
+        dataStream.close();
+        System.out.println("data = " + data.length() + " \ndata:"+ data + "c = " + c );
+        //data.charAt(0);
+        String FILENAME = "table.cer";
+        FileOutputStream fos = new FileOutputStream(FILENAME);
+        fos.write(data.toString().getBytes());
+        fos.close();      
+//==============================================================================================        
+        FileInputStream fis = new FileInputStream("table.cer");
+		/*InputStream dataStream1 = fis;
+        InputStreamReader isr1 = new InputStreamReader(dataStream1);
+        StringBuffer data1 = new StringBuffer();
+        int c1;
+        while ((c1 = fis.read()) != -1){
+               data1.append((char) c1);
+        }		
+        System.out.println(data.equals(data1));
+        System.out.println("data = " + data1.length() + " \ndata:" + data1 + "c = " + c1);
+        ByteArrayInputStream byteA = new ByteArrayInputStream(data.toString().getBytes());
+        fis.close();
+        dataStream1.close();
+        isr1.close();*/
+        
+		ObjectInputStream oin = new ObjectInputStream(fis);
+		try {
+			university ts = (university) oin.readObject();
+			lesson temp = ts.getHead().getHead().getHead().getHead();
+	        do{
+	        	System.out.println(temp.getSubj());
+	        	System.out.println(temp.getRoom());
+	        	temp = temp.getNext();
+	        }while(temp!=null);			
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
-	
-	public static void extractFile() throws IOException, ClassNotFoundException{
-        FileInputStream fis = new FileInputStream("package2.zip");
-		//File f;
-		//String f = "http://bloodoed.zg5.ru/projects/pgups_timetable/package2.zip";
-		//FileInputStream fis = new FileInputStream((File) f);
-        GZIPInputStream gs = new GZIPInputStream(fis);
-        ObjectInputStream ois = new ObjectInputStream(gs);
-        university pgups= (university) ois.readObject();
-        //Employee sam = (Employee) ois.readObject();
-        System.out.println(pgups.getHead().getHead().getHead().getName());
-        ois.close();
-        //fis.close();
-	}
 }
+
 
