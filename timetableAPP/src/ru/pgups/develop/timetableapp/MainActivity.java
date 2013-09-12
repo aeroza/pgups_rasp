@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OptionalDataException;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.zip.GZIPInputStream;
@@ -15,11 +16,13 @@ import java.util.zip.GZIPInputStream;
 import tableLib.*;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
+import android.widget.Toast;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class MainActivity extends Activity {
@@ -36,36 +39,67 @@ public class MainActivity extends Activity {
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
-	//метод ниже пока лень править, так что больше интересен readTable 
-	public void getTable(View view) throws IOException {
+	Context ctx;
+	public ProgressDialog loadMsg;	
+	boolean loadSuccess = false;
+	public void onDownloadPreExecute() {
+		loadMsg = new ProgressDialog(this);
+	    loadMsg.setMessage("Загрузка расписания...");
+	    loadMsg.setIndeterminate(true);
+	    loadMsg.setCancelable(false);
+	    loadMsg.show();
+	}	
+	
+	public void onPostDownloadExecute(){
+		loadMsg.dismiss();
+	}
+	
+//метод ниже пока лень править, так что больше интересен readTable 
+	public void getTable(View view) {
 		System.out.println("hello!");
-		Thread myThready = new Thread(new Runnable() {
-			public void run() // Этот метод будет выполняться в побочном потоке
+		Thread download = new Thread(new Runnable() {
+			public void run()
 			{
-				try {
-					URL myURL = new URL("http://bloodoed.zg5.ru/projects/pgups_timetable/string.out");
+
+				try {					
+					URL myURL = new URL("http://bloodoed.zg5.ru/projects/pgups_timetable/tableZIP.out");
 					InputStream dataStream = myURL.openConnection().getInputStream();
-					ByteArrayInputStream[] data = null;	
-					byte[] c = null;
-					dataStream.read(c);
-					/*while ((c = isr.read()) != -1) {
-						data.append((char) c);
-					}*/
-
-					System.out.println("c = " + c);
-					// data.charAt(0);
-					String FILENAME = "string.cer";
-					FileOutputStream fos = openFileOutput(FILENAME,	Context.MODE_PRIVATE);
-					fos.write(c, 0, c.length);
+					String FILENAME = "table.cer"; 
+					OutputStream fos = openFileOutput(FILENAME,	Context.MODE_PRIVATE);
+					byte[] b = new byte[1];
+					int c = 0;
+					try{
+						while((dataStream.read(b)) != -1){
+							fos.write(b);
+							c++;
+						}
+					}catch(IOException e){
+						System.out.println("Something saaaad happened(((");
+					}
+					dataStream.close();
 					fos.close();
-
+					loadSuccess = true;
 				} catch (IOException ie) {
-					ie.printStackTrace();
+					onPostDownloadExecute();
+
+					//ie.printStackTrace();
 				}
 			}
 		});
-		myThready.start(); // Запуск потока
-
+		onDownloadPreExecute();
+		download.start(); // Запуск потока
+		do
+		{
+		    try{
+		        download.join(250);				//Подождать окончания загрузки четверть секунды.
+		    }catch(InterruptedException e){}
+		}
+		while(download.isAlive());		
+		onPostDownloadExecute();
+		if (!loadSuccess){
+			Toast toast = Toast.makeText(getApplicationContext(), "Не удалось установить соединение(((", Toast.LENGTH_LONG); 
+			toast.show();	
+		}
 	}
 
 	public void readTable(View view) throws OptionalDataException,
