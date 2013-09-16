@@ -24,6 +24,8 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.Toast;
 
+import ru.pgups.develop.timetableapp.AsyncLoad;
+
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class MainActivity extends Activity {
 
@@ -39,7 +41,7 @@ public class MainActivity extends Activity {
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
-	Context ctx;
+	/*Context ctx;
 	public ProgressDialog loadMsg;	
 	boolean loadSuccess = false;
 	public void onDownloadPreExecute() {
@@ -52,11 +54,17 @@ public class MainActivity extends Activity {
 	
 	public void onPostDownloadExecute(){
 		loadMsg.dismiss();
-	}
-	
+	}*/
+
 //метод ниже пока лень править, так что больше интересен readTable 
 	public void getTable(View view) {
 		System.out.println("hello!");
+		/*System.out.println(Context.MODE_PRIVATE);
+		AsyncLoad al = new AsyncLoad();
+		al.forceGet();*/
+		
+
+		
 		Thread download = new Thread(new Runnable() {
 			public void run()
 			{
@@ -67,27 +75,26 @@ public class MainActivity extends Activity {
 					String FILENAME = "table.cer"; 
 					OutputStream fos = openFileOutput(FILENAME,	Context.MODE_PRIVATE);
 					byte[] b = new byte[1];
-					int c = 0;
 					try{
 						while((dataStream.read(b)) != -1){
 							fos.write(b);
-							c++;
 						}
 					}catch(IOException e){
 						System.out.println("Something saaaad happened(((");
 					}
 					dataStream.close();
 					fos.close();
-					loadSuccess = true;
+					//loadSuccess = true;
 				} catch (IOException ie) {
-					onPostDownloadExecute();
+					//onPostDownloadExecute();
 
-					//ie.printStackTrace();
+					ie.printStackTrace();
 				}
 			}
 		});
-		onDownloadPreExecute();
-		download.start(); // Запуск потока
+		download.start();
+		/*onDownloadPreExecute();
+		 // Запуск потока
 		do
 		{
 		    try{
@@ -99,7 +106,7 @@ public class MainActivity extends Activity {
 		if (!loadSuccess){
 			Toast toast = Toast.makeText(getApplicationContext(), "Не удалось установить соединение(((", Toast.LENGTH_LONG); 
 			toast.show();	
-		}
+		}*/
 	}
 
 	public void readTable(View view) throws OptionalDataException,
@@ -108,12 +115,8 @@ public class MainActivity extends Activity {
 		Thread myThready = new Thread(new Runnable() {
 			public void run() // Этот метод будет выполняться в побочном потоке
 			{
-				URL myURL;
 				try {
-					//пилим ссылку
-					myURL = new URL("http://bloodoed.zg5.ru/projects/pgups_timetable/tableZIP.out");
-					//качаем в поток
-					InputStream dataStream = myURL.openConnection().getInputStream();
+					InputStream dataStream = openFileInput("table.cer");
 					//здесь уже чтото знакомое - GZIPInputStream разархивирует поток,
 					//а ObjectInputStream преобразует поток в объекты
 					ObjectInputStream oin = new ObjectInputStream(new GZIPInputStream(dataStream));
@@ -129,19 +132,6 @@ public class MainActivity extends Activity {
 					System.out.println(ts);
 					oin.close();
 					dataStream.close();
-					//дальше кусочек исправлю попозже
-					/*
-					FileOutputStream fos = openFileOutput("table.cer",
-							Context.MODE_PRIVATE);
-					ObjectOutputStream oos = new ObjectOutputStream(fos);
-					oos.writeObject(ts);
-					oos.flush();
-					oos.close();
-
-					FileInputStream fis = openFileInput("table.cer");
-					ObjectInputStream oIN = new ObjectInputStream(fis);
-					String s1 = (String) oIN.readObject();
-					System.out.println(s1);*/
 				} catch (MalformedURLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
